@@ -1,0 +1,434 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class A2 extends CI_Controller {
+
+	
+	function index(){
+		#echo "OK";
+		#return false;
+		#$this->load->helper('language');
+		#if($this->session->userdata('id')){
+			$this->load->model('bet_model');
+		#}
+		$this->load->model('betfront_model');
+
+
+
+
+		#$this->lang->load('lp','portuguese-brazilian');
+		//////////////  X CONF ATUAL
+		
+		require_once('includes/betapi/jsonrpc-futbol.php'); 
+		$dados['APP_KEY'] = $APP_KEY;
+		$dados['SESSION_TOKEN'] = $SESSION_TOKEN;
+		
+		if(isset($_POST['q'])){
+			$dados['busca'] = $this->bet_model->get_evento_query($APP_KEY, $SESSION_TOKEN,1);
+		}
+
+		$mercado = "MATCH_ODDS";
+		$dados['mercado'] = $mercado;
+		
+		//$dados['campeonatos'] = $this->betfront_model->getSoccers_competition_all($APP_KEY, $SESSION_TOKEN);
+		$hoje = date("Y-d-m");
+		$hora = date("h:i:s");
+		
+		$this->load->view('a2/novo-index' , $dados);
+		//$this->load->view('2019/novo-index-estatico' , $dados);
+	}
+
+
+function set_data(){
+		#echo "OK!";
+		#return false;
+		$qr = $this->db->query("SELECT * FROM corridas_cavalos_2022 WHERE data_evento IS NULL ORDER BY id asc LIMIT 50000 ");
+		#$qr = $this->db->query("SELECT * FROM corridas_cavalos WHERE datahora_evento IS NULL AND (data_evento BETWEEN '2019-01-01' AND '2019-12-31')   ORDER BY data_evento desc LIMIT 50000 ");
+		#$qr = $this->db->query("SELECT * FROM corridas_cavalos_2022 WHERE data_evento = '0000-00-00' LIMIT 50 ");
+		foreach($qr->result() as $dd){
+			$data = substr($dd->event_dt,0,10);
+
+			$dia = substr($dd->event_dt,0,2);
+			$mes = substr($dd->event_dt,3,2);
+			$ano = substr($dd->event_dt,6,4);
+
+			$hora = substr($dd->event_dt,10,6).":00";
+
+
+
+			$data_trat = $ano."-".$mes."-".$dia;
+			echo "<h1>".$dd->id."</h1>";
+			echo "<strong>".$ano."-".$mes."-".$dia." $hora</strong>";
+			echo "<br />";
+
+
+
+			$dd_data = array('data_evento' => $data_trat);
+			$dd_data['datahora_evento'] =  $data_trat." ".$hora;
+			#$dd_data = array('datahora_evento' => $data_trat." ".$hora);
+			print_r($dd_data);
+			echo "<br>";
+			$this->db->where('id',$dd->id);
+			if($this->db->update('corridas_cavalos_usa',$dd_data)){
+				echo "foooooi";
+			}else{
+				echo "naaaaaaaao";
+			}
+		}
+		echo $qr->num_rows();
+	}
+
+	function set_data_mae_gb(){
+		#echo "OK!";
+		#return false;
+		$qr = $this->db->query("SELECT * FROM corridas_cavalos_gb WHERE data_evento IS NULL ORDER BY id asc LIMIT 50000 ");
+		#$qr = $this->db->query("SELECT * FROM corridas_cavalos WHERE datahora_evento IS NULL AND (data_evento BETWEEN '2019-01-01' AND '2019-12-31')   ORDER BY data_evento desc LIMIT 50000 ");
+		#$qr = $this->db->query("SELECT * FROM corridas_cavalos_2022 WHERE data_evento = '0000-00-00' LIMIT 50 ");
+		foreach($qr->result() as $dd){
+			$data = substr($dd->event_dt,0,10);
+
+			$dia = substr($dd->event_dt,0,2);
+			$mes = substr($dd->event_dt,3,2);
+			$ano = substr($dd->event_dt,6,4);
+
+			$hora = substr($dd->event_dt,10,6).":00";
+
+
+
+			$data_trat = $ano."-".$mes."-".$dia;
+			echo "<h1>".$dd->id."</h1>";
+			echo "<strong>".$ano."-".$mes."-".$dia." $hora</strong>";
+			echo "<br />";
+
+
+
+			$dd_data = array('data_evento' => $data_trat);
+			$dd_data['datahora_evento'] =  $data_trat." ".$hora;
+			#$dd_data = array('datahora_evento' => $data_trat." ".$hora);
+			print_r($dd_data);
+			echo "<br>";
+			$this->db->where('id',$dd->id);
+			if($this->db->update('corridas_cavalos_gb',$dd_data)){
+				echo "foooooi";
+			}else{
+				echo "naaaaaaaao";
+			}
+		}
+		echo $qr->num_rows();
+	}
+
+
+	function placebets($mercado=""){
+		#echo "OK";
+		#return false;
+		#$this->load->helper('language');
+		#if($this->session->userdata('id')){
+			$this->load->model('bet_model');
+		#}
+		$this->load->model('betfront_model');
+
+
+
+
+		#$this->lang->load('lp','portuguese-brazilian');
+		//////////////  X CONF ATUAL
+		
+		require_once('includes/betapi/jsonrpc-futbol.php'); 
+		$dados['APP_KEY'] = $APP_KEY;
+		$dados['SESSION_TOKEN'] = $SESSION_TOKEN;
+		
+		
+
+		$mercado = "MATCH_ODDS";
+		$dados['mercado'] = $mercado;
+		
+		//$dados['campeonatos'] = $this->betfront_model->getSoccers_competition_all($APP_KEY, $SESSION_TOKEN);
+		$hoje = date("Y-d-m");
+		$hora = date("h:i:s");
+		
+		$this->load->view('a2/placebets' , $dados);
+		//$this->load->view('2019/novo-index-estatico' , $dados);
+	}
+
+	function get_hots($cb=""){
+		$qr_hots = $this->db->query("SELECT * FROM `odds_hot` WHERE resultado = 22 AND status  = '0' AND id_user = '".$this->session->userdata('id')."' ORDER BY fila asc LIMIT 1");
+		if($qr_hots->num_rows() > 0 ){
+			require_once('includes/betapi/jsonrpc-futbol.php'); 
+			$this->load->model('bet_model');
+
+			$entrar = true;
+			#$this->load->model('bet_model');
+			$dd = $qr_hots->row();
+			#echo "opa tem novo<br>";
+			echo "Evento: ".$dd->id_partida." - ";
+			#echo "<br>";
+			echo "MKT: <a href='https://www.betfair.com/exchange/plus/football/market/".$dd->id_mkt."'> ".$dd->id_mkt." </a>";
+			#echo "<br>";
+			echo " - Sel: ".$dd->selection_id;
+			#echo "<br>";
+			echo " @".$dd->odd;
+			echo " | Calback: ";
+			
+			require_once('includes/betapi/jsonrpc-futbol.php'); 
+			#echo "<br>".$APP_KEY, $SESSION_TOKEN.' - '.$dd->id_mkt.' - '.$dd->selection_id;
+
+			$odds_sel_hot = $this->bet_model->getOdds($APP_KEY, $SESSION_TOKEN, $dd->id_mkt, $dd->selection_id);
+			#print_r($odds_sel_hot);
+			echo "<h1>".$odds_sel_hot->status."</h1>";
+			if($odds_sel_hot->status == "CLOSED"){
+				$this->db->query("UPDATE `odds_hot` SET `status`= '2' WHERE `id_mkt`= '".$dd->id_mkt."' AND selection_id =  '".$dd->selection_id."'");
+			}else{
+				foreach($odds_sel_hot->runners as $dd_odd){
+						if(isset($dd_odd->selectionId)){
+							if($dd_odd->selectionId == $dd->selection_id ){
+								$odd_atual = floatval ($dd_odd->ex->availableToBack[0]->price);
+								$odd_max = 2.30;
+								############## DEFINIR ODD MAXIMA
+								/*
+								if($odd_atual > $odd_max){
+									echo "passou do LIMITE - CANCELADA @".$odd_atual;
+									$this->db->query("UPDATE `odds_hot` SET `status`= '4' WHERE `id_mkt`= '".$dd->id_mkt."' AND selection_id =  '".$dd->selection_id."'");
+									$entrar = false;
+								} // x if atual
+								*/
+
+							} //x if seletion == selecion
+						} // x isset
+				} // x foreach
+
+
+				#### EVITAR ODDS ALTAS
+				$this->db->query("UPDATE `odds_hot` SET `fila`= fila+1 WHERE `id_mkt`= '".$dd->id_mkt."' AND selection_id =  '".$dd->selection_id."'");
+				if($dd->fila > 20){
+					$this->db->query("UPDATE `odds_hot` SET `status`= '2' WHERE `id_mkt`= '".$dd->id_mkt."' AND selection_id =  '".$dd->selection_id."'");
+				}
+
+				if($entrar == true){ // verifica limite da odd
+					$set = $this->bet_model->placeBet_get($APP_KEY, $SESSION_TOKEN, $dd->id_mkt, $dd->selection_id);
+					$this->bet_model->printBetResult($set,$dd->id_mkt);
+				}
+			}
+			
+			
+			#echo $set;
+			
+
+
+		}else{
+			echo '0';
+		}
+	}
+
+	function check(){
+		$this->load->model('padrao_model');
+		$this->load->model('bet_model');
+		#include("includes/mysqli_con.php");
+		#echo "OK 2";
+		#return false;
+		#$qr_run = $this->db->query("SELECT * FROM runs_horses WHERE countryCode = 'US' AND status = '0'  ORDER BY id asc ");
+		#$qr_jogos = $this->db->query("SELECT * FROM partidas WHERE data_betfair > NOW()  ORDER BY data_betfair asc ");
+		$qr_jogos = $this->db->query("SELECT  DISTINCT o.id_partida , p.id, p.evento, p.data_betfair, o.odd, o.tamanho FROM partidas as p 
+			INNER JOIN odds_mkt as o ON p.id_evento  = o.id_partida
+			WHERE p.data_betfair > NOW()  ORDER BY p.data_betfair asc ");
+		#$qr_run = $this->db->query("SELECT * FROM runs_horses  WHERE status = 0 ORDER BY id desc");
+		#echo $qr_jogos->num_rows();
+		#return false;
+		$dados['qr_jogos'] = $qr_jogos;
+
+
+
+		// base de dash/mkts
+		$dd = $this->padrao_model->get_by_id($this->session->userdata('id'),'user')->row();
+		$this->db->order_by('id','desc');
+		$jogos = $this->db->query("SELECT DISTINCT id_partida FROM odds_mkt");
+		$mercados = $this->db->query("SELECT DISTINCT id_mkt  FROM odds_mkt");
+		
+		$dados['jogos'] = $jogos;
+		$dados['mercados'] = $mercados;
+		$dados['dd'] = $dd;
+		$dados['total'] = $this->db->get('odds_mkt')->num_rows();
+		$this->load->view('a2/check_jogos', $dados);
+	} // x fn
+
+
+	function set_jogos(){
+		#print_r($_POST);
+		#return false;
+		#echo "<br />";
+		#echo "<br />";
+		foreach($_POST['runs'] as $run){
+			#$odd_mkt_run = $_POST['odd'.$run];
+			#echo $run;
+			echo "<br>";
+			$dd_run = explode('_', $run);
+			$id_partida = $dd_run[0]; 
+			$id_mkt = $dd_run[1];
+
+			#$id_mkt_betfair = str_replace("11", "1.1", $id_mkt_h);
+
+			$dd_jogo = array(
+				'id_partida' => $id_partida,
+				'tipo' => 'a2',
+				'id_mkt' => $id_mkt
+				#'status' => 0
+			);
+			$this->db->insert('partidas_bet' , $dd_jogo);
+
+
+
+			#echo "Jogo: ".$id_partida." ------ MKT: ".$id_mkt_h." ---------- pegar a ".$odd_mkt_run." (".$id_mkt_betfair.") <br>";
+
+			echo "Jogo: ".$id_partida." ------ ".$id_mkt." <br>";
+			echo "<hr>";
+
+
+		} // x foreach
+
+		echo "<br />";
+		echo "<p align='center'><a href='".base_url()."a2/check'> Voltar </a></p>";
+	} // x fn
+
+	function sels(){
+		$this->db->order_by('id','desc');
+		$qr = $this->db->get('partidas_bet');
+		/*
+		if($qr->num_rows() > 0){
+			foreach($qr->result() as $dd){
+				$dd_partida = $this->padrao_model->get_by_matriz('id_evento',$dd->id_partida,'partidas');
+				if($dd_partida->num_rows() == 0){
+					echo "Indefinido";
+				}else{
+					echo "<p>".$dd_partida->row()->evento."</p>";
+				}
+
+			}
+		}
+		*/
+		$dados['jogos'] = $qr;
+		$this->load->view('a2/jogos_selecionados' , $dados);
+	}
+	
+
+	function csv(){
+		$meuArray = Array();
+	
+		// MANUPUILANDO DIRETORIOS		
+		$path = 'csv/';
+		
+		$directory = new RecursiveDirectoryIterator( $path );
+		$cont = 0;
+		foreach ($directory as $file) { $cont++;
+		 
+		    echo $file->getFileName();
+		    echo "<br>";
+
+			// x man dir
+			$row = 1;
+			$cont_cel = 0;
+			$reg = 0;
+			if (($handle = fopen($path."".$file->getFileName(), "r")) !== FALSE)
+			{
+			  //Passagem pelas linhas
+			  while (($data = fgetcsv($handle, null, ",")) !== FALSE)
+			  {
+			      $dd_insert = [];
+			      $num = count($data);
+			      $row++;
+			      // Passagem pelas colunas
+			      for ($col = 0; $col < $num; $col++)
+			      {
+			      	  $cont_cel++;
+			          //  DEFININDO CAMPOS DA TABELA DO  DB
+			          if($reg > 0){
+
+				          if($cont_cel == 1){
+				          	$dd_insert['event_id'] = $data[$col];
+				          	$dd_where['event_id'] = $data[$col];
+
+				          }
+				          if($cont_cel == 2){
+				          	$dd_insert['menu_hint'] = $data[$col];
+				          }
+				          if($cont_cel == 3){
+				          	$dd_insert['event_name'] = $data[$col];
+				          }
+				          if($cont_cel == 4){
+				          	$dd_insert['event_dt'] = $data[$col];
+				          }
+				          if($cont_cel == 5){
+				          	$dd_insert['selection_id'] = $data[$col];
+				          }
+				          if($cont_cel == 6){
+				          	#$dd_insert['selection_name'] = $data[$col];
+				          	#$dd_where['selection_name'] = $data[$col];
+				          	$nm_horse = str_replace("'", "", $data[$col]);
+				          	$dd_insert['selection_name'] = $nm_horse;
+				          	$dd_where['selection_name'] = $nm_horse;
+
+				          }
+
+				          // ---------------------------
+				          if($cont_cel == 7){
+				          	$dd_insert['win_lose'] = $data[$col];
+				          }
+				          if($cont_cel == 8){
+				          	$dd_insert['bsp'] = $data[$col];
+				          }
+				          if($cont_cel == 9){
+				          	$dd_insert['ppwap'] = $data[$col];
+				          }
+				          if($cont_cel == 10){
+				          	$dd_insert['morningwap'] = $data[$col];
+				          }
+				          if($cont_cel == 11){
+				          	$dd_insert['ppmax'] = $data[$col];
+				          }
+				          if($cont_cel == 12){
+				          	$dd_insert['ppmin'] = $data[$col];
+				          }
+				          if($cont_cel == 13){
+				          	$dd_insert['ipmax'] = $data[$col];
+				          }
+				          if($cont_cel == 14){
+				          	$dd_insert['ipmin'] = $data[$col];
+				          }
+				          if($cont_cel == 15){
+				          	$dd_insert['morningtraderdvol'] = $data[$col];
+				          }
+				          if($cont_cel == 16){
+				          	$dd_insert['pptradedvol'] = $data[$col];
+				          }
+				          if($cont_cel == 17){
+				          	$dd_insert['iptradedvol'] = $data[$col];
+				          }
+				          // nomeia o arqvuivo font
+				          $dd_insert['arq'] = $file->getFileName();
+				          
+				      }
+			         
+			          echo 'Linhainha: '.$row.' e na Coluna: '.$data[$col] . " ($col - <b>$cont_cel</b>) <br />\n";
+			         
+			          if($cont_cel == 17){
+
+			          	if($reg > 0 && $dd_insert['selection_name'] != '------------------------------') {
+			          		$this->db->where($dd_where);
+			          		// corridas_cavalos_gb
+			          		$qr_row = $this->db->get("corridas_cavalos_2022");
+			          		if($qr_row->num_rows() == 0){
+					          	$this->db->insert('corridas_cavalos_2022' , $dd_insert);					          	
+					        }
+				        }
+
+
+			          	$cont_cel = 0;
+			          	$reg++;
+			          	echo "<br>REG: <b>$reg</b><hr>";
+			          	print_r($dd_insert);
+
+			          	echo "<br />";
+			          	array_shift($dd_insert);
+			          }    
+			      } // x for
+			  } // x while
+			  unlink($path."".$file->getFileName());
+			  fclose($h

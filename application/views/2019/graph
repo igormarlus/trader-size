@@ -1,0 +1,3 @@
+<?
+echo $id_mkt.' ******* '.$id_selection;
+?>

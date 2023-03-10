@@ -1,0 +1,17 @@
+<?xml version='1.0' standalone='yes'?>
+<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
+xmlns:bfg='http://www.betfair.com/publicapi/v3/BFGlobalService/'>
+<soapenv:Header/>
+<soapenv:Body>
+<bfg:login>
+<bfg:request>
+<ipAddress>0</ipAddress >
+<locationId >0</locationId >
+<password >N2009Lab</password >
+<productId>82</productId>
+<username >igormarlus</username >
+<vendorSoftwareId>0</vendorSoftwareId >
+</bfg:request>
+</bfg:login>
+</soapenv:Body>
+</soapenv:Envelope>
